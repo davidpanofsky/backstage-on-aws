@@ -1,6 +1,6 @@
 python-dotenv
 pyyaml
-aws_cdk.core
+aws-cdk.core==1.86.0
 aws_cdk.aws_ec2
 aws_cdk.aws_ecs
 aws_cdk.aws_ecs_patterns
