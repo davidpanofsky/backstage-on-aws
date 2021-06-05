@@ -254,8 +254,8 @@ class BackstageStack(core.Stack):
             outputs=[build_output],
             environment_variables={
                 "REPOSITORY_URI": codebuild.BuildEnvironmentVariable(value=repo_uri),
-                "AWS_REGION": codebuild.BuildEnvironmentVariable(value=props.get("AWS_REGION")),
-                "CONTAINER_NAME": codebuild.BuildEnvironmentVariable(value=props.get("CONTAINER_NAME"))
+                "AWS_REGION": codebuild.BuildEnvironmentVariable(value=props.get("AWS_REGION", 'us-east-1')),
+                "CONTAINER_NAME": codebuild.BuildEnvironmentVariable(value=container_name)
             },
 
         )
