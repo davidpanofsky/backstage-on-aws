@@ -3,7 +3,7 @@ app:
   baseUrl: http://localhost:3000
 
 organization:
-  name: My Company
+  name: TripAdvisor
 
 backend:
   baseUrl: http://localhost:7000
@@ -42,7 +42,7 @@ integrations:
 
 proxy:
   '/test':
-    target: 'https://example.com'
+    target: 'https://tripadvisor.com'
     changeOrigin: true
 
 # Reference documentation http://backstage.io/docs/features/techdocs/configuration
