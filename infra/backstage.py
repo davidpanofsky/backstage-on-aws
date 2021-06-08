@@ -32,6 +32,7 @@ class BackstageStack(core.Stack):
         container_name = props.get("CONTAINER_NAME", 'backstage')
         backstage_dir = props.get("BACKSTAGE_DIR", './backstage')
         acm_arn = props.get("ACM_ARN", None)
+        vpc_id = props.get("VPC_ID", None)
         # github info for codepipeline
         github_repo = props.get("GITHUB_REPO")
         github_org = props.get("GITHUB_ORG")
@@ -110,12 +111,20 @@ class BackstageStack(core.Stack):
         # props['POSTGRES_PASSWORD'] = aurora_creds.secret_value_from_json('password').to_string()
         secret_mapping.update({'POSTGRES_PASSWORD': ecs.Secret.from_secrets_manager(aurora_creds, field='password')})
         
-        # by default the ecs_pattern used below will setup a public and private set of subnets. 
-        vpc = ec2.Vpc(
-            self, 
-            "ECS-VPC",
-            max_azs=2,
-        )
+        # Use existing VPC if VPC_ID is set in configuration, otherwise by default the ecs_pattern used below will
+        # setup a public and private set of subnets.
+        if vpc_id:
+            vpc = ec2.Vpc.from_lookup(
+                self,
+                "ECS-VPC",
+                vpc_id=vpc_id
+            )
+        else:
+            vpc = ec2.Vpc(
+                self,
+                "ECS-VPC",
+                max_azs=2,
+            )
 
         # SubnetGroup uses the private subnets by default this is passed to the aurora cluster
         # we could set this to an Isolated group if we created those subnets and have aurora isolated
