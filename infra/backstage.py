@@ -14,7 +14,7 @@ from aws_cdk import (
     aws_route53 as route53,
     aws_codebuild as codebuild,
     aws_codepipeline as codepipeline,
-    aws_codepipeline_actions as actions,
+    aws_codepipeline_actions as codepipeline_actions,
 )
 
 class BackstageStack(core.Stack):
@@ -231,7 +231,7 @@ class BackstageStack(core.Stack):
         build_output = codepipeline.Artifact()
 
         # setup source to be the backstage app source
-        source_action = actions.GitHubSourceAction(
+        source_action = codepipeline_actions.GitHubSourceAction(
             oauth_token=github_token_secret.secret_value_from_json("secret"),
             owner=github_org,
             repo=github_repo,
@@ -248,6 +248,7 @@ class BackstageStack(core.Stack):
             build_spec=codebuild.BuildSpec.from_object(build_spec),
             #build_spec=codebuild.BuildSpec.from_source_filename('buildspec.yml'),
             environment=codebuild.BuildEnvironment(build_image=codebuild.LinuxBuildImage.STANDARD_4_0, privileged=True),
+            cache=codebuild.Cache.local(codebuild.LocalCacheMode.DOCKER_LAYER),
         )
         policy =  iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2ContainerRegistryPowerUser")
         build_project.role.add_managed_policy(policy)
@@ -256,7 +257,7 @@ class BackstageStack(core.Stack):
         # the buildspec.yaml is in the backstage app repo
         repo_uri = docker_asset.repository.repository_uri
 
-        build_action = actions.CodeBuildAction(
+        build_action = codepipeline_actions.CodeBuildAction(
             action_name="Docker-Build",
             project=build_project,
             input=source_output,
@@ -269,7 +270,7 @@ class BackstageStack(core.Stack):
 
         )
         # ECS deploy action will take file made in build stage and update the service with new image
-        deploy_action = actions.EcsDeployAction(
+        deploy_action = codepipeline_actions.EcsDeployAction(
             service=ecs_stack.service,
             action_name="ECS-Deploy",
             input=build_output,
