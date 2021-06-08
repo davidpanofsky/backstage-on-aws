@@ -1,5 +1,5 @@
 # Stage 1 - Create yarn install skeleton layer
-FROM node:14-buster-slim AS packages
+FROM 709159256042.dkr.ecr.us-east-1.amazonaws.com/node:14-buster-slim AS packages
 
 WORKDIR /app
 COPY package.json yarn.lock ./
