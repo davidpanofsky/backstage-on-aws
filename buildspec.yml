@@ -17,7 +17,7 @@ phases:
       - yarn tsc
       - yarn build
       - echo Building the Docker image...
-      - docker build --cache-from 709159256042.dkr.ecr.us-east-1.amazonaws.com/node:14-buster-slim --cache-from $REPOSITORY_URI:latest -f packages/backend/Dockerfile -t $REPOSITORY_URI:latest .
+      - docker build --cache-from $REPOSITORY_URI:latest -f packages/backend/Dockerfile -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
