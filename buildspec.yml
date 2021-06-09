@@ -13,11 +13,11 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - yarn install --frozen-lockfile
-      - yarn tsc
-      - yarn build
+#     - yarn install --frozen-lockfile
+#     - yarn tsc
+#     - yarn build
       - echo Building the Docker image...
-      - docker build --cache-from $REPOSITORY_URI:latest -f packages/backend/Dockerfile -t $REPOSITORY_URI:latest .
+      - docker build --cache-from $REPOSITORY_URI:latest -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
