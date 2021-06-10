@@ -249,7 +249,11 @@ class BackstageStack(core.Stack):
             build_spec=codebuild.BuildSpec.from_object(build_spec),
             #build_spec=codebuild.BuildSpec.from_source_filename('buildspec.yml'),
             environment=codebuild.BuildEnvironment(build_image=codebuild.LinuxBuildImage.STANDARD_4_0, privileged=True),
-            cache=codebuild.Cache.local(codebuild.LocalCacheMode.DOCKER_LAYER),
+            cache=codebuild.Cache.local(
+                codebuild.LocalCacheMode.SOURCE,
+                codebuild.LocalCacheMode.DOCKER_LAYER,
+                codebuild.LocalCacheMode.CUSTOM,
+            ),
         )
         policy =  iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2ContainerRegistryPowerUser")
         build_project.role.add_managed_policy(policy)
