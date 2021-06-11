@@ -205,7 +205,9 @@ class BackstageStack(core.Stack):
 
         # Easiest way to stand up mult-tier ECS app is with an ecs_pattern,  we are making it HTTPS
         # and accessible on a DNS name. We give ECS the Security Group for fargate
-        ecs_stack = ecs_patterns.ApplicationLoadBalancedFargateService(self, "MyFargateService",
+        ecs_stack = ecs_patterns.ApplicationLoadBalancedFargateService(
+            self,
+            "BackstageService",
             cluster=ecs_cluster,        # Required
             cpu=512,                    # Default is 256
             desired_count=1,            # Default is 1
@@ -245,7 +247,7 @@ class BackstageStack(core.Stack):
 
         build_project = codebuild.PipelineProject(
             self, 
-            "CodebuildProject", 
+            "Backstage", 
             #build_spec=codebuild.BuildSpec.from_object(build_spec),
             build_spec=codebuild.BuildSpec.from_source_filename('buildspec.yml'),
             environment=codebuild.BuildEnvironment(build_image=codebuild.LinuxBuildImage.STANDARD_4_0, privileged=True),
