@@ -42,6 +42,8 @@ class BackstageStack(core.Stack):
         github_token_secret_name = props.get("GITHUB_TOKEN_SECRET_NAME")
         # secretmgr info for auth to github users
         github_auth_secret_name = props.get("GITHUB_AUTH_SECRET_NAME", None)
+        # secretmgr info for auth to gitlab users
+        gitlab_auth_secret_name = props.get("GITLAB_AUTH_SECRET_NAME", None)
         # secretmgr info for auth to AWS for plugins
         aws_auth_secret_name = props.get("AWS_AUTH_SECRET_NAME", None)
 
@@ -57,6 +59,11 @@ class BackstageStack(core.Stack):
                 self, "github-auth-secret", github_auth_secret_name)
             secret_mapping.update({'AUTH_GITHUB_CLIENT_ID': ecs.Secret.from_secrets_manager(github_auth_secret, field='id')})
             secret_mapping.update({"AUTH_GITHUB_CLIENT_SECRET": ecs.Secret.from_secrets_manager(github_auth_secret, field='secret')})
+        if gitlab_auth_secret_name is not None:
+            gitlab_auth_secret = secrets.Secret.from_secret_name_v2(
+                self, "gitlab-auth-secret", gitlab_auth_secret_name)
+            secret_mapping.update({'AUTH_GITLAB_CLIENT_ID': ecs.Secret.from_secrets_manager(gitlab_auth_secret, field='id')})
+            secret_mapping.update({"AUTH_GITLAB_CLIENT_SECRET": ecs.Secret.from_secrets_manager(gitlab_auth_secret, field='secret')})
         if aws_auth_secret_name is not None:
             aws_auth_secret = secrets.Secret.from_secret_name_v2(self, "aws-auth-secret", aws_auth_secret_name)
             secret_mapping.update({"AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(aws_auth_secret, field='id')})
