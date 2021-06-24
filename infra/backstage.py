@@ -15,6 +15,7 @@ from aws_cdk import (
     aws_codebuild as codebuild,
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipeline_actions,
+    pipelines,
 )
 
 class BackstageStack(core.Stack):
@@ -237,18 +238,34 @@ class BackstageStack(core.Stack):
         ### to the backstage app repo to deploy and update
 
         # create the output artifact space for the pipeline
-        source_output = codepipeline.Artifact()
-        build_output = codepipeline.Artifact()
+        source_artifact = codepipeline.Artifact()
+        cloud_assembly_artifact = codepipeline.Artifact()
 
-        # setup source to be the backstage app source
-        source_action = codepipeline_actions.GitHubSourceAction(
-            oauth_token=github_token_secret.secret_value_from_json("secret"),
-            owner=github_org,
-            repo=github_repo,
-            branch='main',
-            action_name="Github-Source",
-            output=source_output
+        # setup cdkpipeline construct
+        pipeline = pipelines.CdkPipeline(
+            self,
+            "fccbackstagepipeline",
+            pipeline_name="BackstagePipeline",
+            cross_account_keys=False,
+            cloud_assembly_artifact=cloud_assembly_artifact,
+
+            # setup source to be the backstage app source
+            source_action = codepipeline_actions.GitHubSourceAction(
+                oauth_token=github_token_secret.secret_value_from_json("secret"),
+                owner=github_org,
+                repo=github_repo,
+                branch='main',
+                action_name="Github-Source",
+                output=source_artifact,
+            ),
+
+            synth_action = pipelines.SimpleSynthAction.standard_npm_synth(
+                source_artifact=source_artifact,
+                cloud_assembly_artifact=cloud_assembly_artifact,
+            )
+
         )
+
         # make codebuild action to use buildspec.yml and feed in env vars from .env
         # this will build and push new image to ECR repo
 
@@ -274,8 +291,8 @@ class BackstageStack(core.Stack):
         build_action = codepipeline_actions.CodeBuildAction(
             action_name="Docker-Build",
             project=build_project,
-            input=source_output,
-            outputs=[build_output],
+            input=source_artifact,
+            outputs=[cloud_assembly_artifact],
             environment_variables={
                 "REPOSITORY_URI": codebuild.BuildEnvironmentVariable(value=repo_uri),
                 "AWS_REGION": codebuild.BuildEnvironmentVariable(value=props.get("AWS_REGION", 'us-east-1')),
@@ -288,15 +305,15 @@ class BackstageStack(core.Stack):
         deploy_action = codepipeline_actions.EcsDeployAction(
             service=ecs_stack.service,
             action_name="ECS-Deploy",
-            input=build_output,
+            input=cloud_assembly_artifact,
         )
 
-        pipeline = codepipeline.Pipeline(self, "fccbackstagepipeline", cross_account_keys=False)
+        #pipeline = codepipeline.Pipeline(self, "fccbackstagepipeline", cross_account_keys=False)
 
-        pipeline.add_stage(
-            stage_name="Source",
-            actions=[source_action]
-        )
+        #pipeline.add_stage(
+        #    stage_name="Source",
+        #    actions=[source_action]
+        #)
 
         pipeline.add_stage(
             stage_name="Build",
