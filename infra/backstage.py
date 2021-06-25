@@ -192,6 +192,8 @@ class BackstageStack(core.Stack):
             auto_delete_objects=True,
         )
 
+        props["TECHDOCS_BUCKET"]=techdocs_bucket.bucket_name
+
         # Lets make ECR repository for docker images and push a build there:
         # by specifying a dockerimage asset
         docker_asset = assets.DockerImageAsset(
@@ -212,6 +214,9 @@ class BackstageStack(core.Stack):
             role_name='Backstage-Fargate-Task-Role',
             assumed_by= iam.ServicePrincipal("ecs-tasks.amazonaws.com")
         )
+
+        # Grant Backstage service R/W access to techdocs bucket
+        techdocs_bucket.grant_read_write(task_role)
 
         # this builds the backstage container on deploy and pushes to ECR
         ecs_task_options = ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
@@ -241,10 +246,6 @@ class BackstageStack(core.Stack):
             domain_zone = hosted_zone,
             enable_ecs_managed_tags = True,
         )  
-
-        # Grant Backstage service R/W access to techdocs bucket
-        techdocs_bucket.grant_read_write(ecs_stack.task_definition.task_role)
-        ecs_stack.task_definition.environment={"TECHDOCS_BUCKET": techdocs_bucket}
 
         ### build a codepipeline for building new images and re-deploying to ecs
         ### this will use the backstage app repo as source to catch canges there
