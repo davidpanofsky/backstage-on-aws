@@ -235,7 +235,8 @@ class BackstageStack(core.Stack):
             environment = props, # pass in the env vars
             container_name=container_name,
             secrets = secret_mapping,
-            task_role=task_role
+            task_role=task_role,
+            log_driver=ecs.AwsLogDriver(stream_prefix="BackstageService", log_group=log_group)
         )
 
         # Easiest way to stand up mult-tier ECS app is with an ecs_pattern,  we are making it HTTPS
