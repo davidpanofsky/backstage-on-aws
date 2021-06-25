@@ -15,6 +15,7 @@ from aws_cdk import (
     aws_codebuild as codebuild,
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipeline_actions,
+    aws_s3 as s3,
 )
 
 class BackstageStack(core.Stack):
@@ -179,6 +180,18 @@ class BackstageStack(core.Stack):
         props['POSTGRES_HOST'] = aurora_pg.cluster_endpoint.hostname
         props['PGUSER'] = db_username
 
+        # S3 bucket for techdocs output
+        techdocs_bucket = s3.Bucket(
+            self,
+            "BackstageTechdocsBucket",
+            encryption=s3.BucketEncryption.KMS,
+            bucket_key_enabled=True,
+            #enforce_ssl=True,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=core.RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+        )
+
         # Lets make ECR repository for docker images and push a build there:
         # by specifying a dockerimage asset
         docker_asset = assets.DockerImageAsset(
@@ -228,6 +241,10 @@ class BackstageStack(core.Stack):
             domain_zone = hosted_zone,
             enable_ecs_managed_tags = True,
         )  
+
+        # Grant Backstage service R/W access to techdocs bucket
+        techdocs_bucket.grant_read_write(ecs_stack.task_definition.task_role)
+        ecs_stack.task_definition.environment={"TECHDOCS_BUCKET": techdocs_bucket}
 
         ### build a codepipeline for building new images and re-deploying to ecs
         ### this will use the backstage app repo as source to catch canges there
