@@ -16,6 +16,7 @@ from aws_cdk import (
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipeline_actions,
     aws_s3 as s3,
+    aws_logs as logs,
 )
 
 class BackstageStack(core.Stack):
@@ -217,6 +218,15 @@ class BackstageStack(core.Stack):
 
         # Grant Backstage service R/W access to techdocs bucket
         techdocs_bucket.grant_read_write(task_role)
+
+        # Create log group
+        log_group = logs.LogGroup(
+            self,
+            "BackstageLogGroup",
+            log_group_name="/ecs/backstage",
+            removal_policy=core.RemovalPolicy.DESTROY,
+            retention=logs.RetentionDays.SIX_MONTHS,
+        )
 
         # this builds the backstage container on deploy and pushes to ECR
         ecs_task_options = ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
