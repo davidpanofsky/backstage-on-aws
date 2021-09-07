@@ -1,4 +1,4 @@
 [submodule "backstage"]
 	path = backstage
-	url = git@github.com:davidpanofsky/backstage.git
+	url = git@gitlab.dev.tripadvisor.com:dpanofsky/backstage.git
 	branch = main
